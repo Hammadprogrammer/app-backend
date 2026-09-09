@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HIFATZAT — App Tester</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+  body { background: #0F172A; color: #F8FAFC; min-height: 100vh; display: flex; justify-content: center; }
+  .phone { width: 100%; max-width: 420px; min-height: 100vh; display: flex; flex-direction: column; background: #0F172A; }
+  .screen { flex: 1; padding: 24px 20px; overflow-y: auto; }
+  .brand { color: #DC143C; font-size: 34px; font-weight: 900; text-align: center; letter-spacing: 6px; margin-top: 60px; }
+  .brand-sub { color: #94A3B8; font-size: 14px; text-align: center; margin: 4px 0 32px; }
+  input { width: 100%; background: #1E293B; border: none; border-radius: 12px; padding: 13px 14px; color: #F8FAFC; font-size: 15px; margin-bottom: 12px; outline: none; }
+  input::placeholder { color: #64748B; }
+  .btn { width: 100%; background: #DC143C; border: none; border-radius: 12px; padding: 14px; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .switch { color: #94A3B8; font-size: 14px; text-align: center; margin-top: 20px; cursor: pointer; background: none; border: none; width: 100%; }
+  .hidden { display: none !important; }
+  h1 { font-size: 24px; font-weight: 800; }
+  .subtitle { color: #94A3B8; font-size: 13px; margin: 4px 0 16px; }
+  /* SOS */
+  .sos-area { display: flex; justify-content: center; align-items: center; padding: 30px 0; position: relative; }
+  .sos-btn { width: 190px; height: 190px; border-radius: 50%; background: #DC143C; border: 4px solid rgba(255,255,255,.25); color: #fff; cursor: pointer; position: relative; z-index: 2; box-shadow: 0 8px 40px rgba(220,20,60,.5); transition: transform .1s; }
+  .sos-btn:active { transform: scale(.93); }
+  .sos-btn .big { font-size: 44px; font-weight: 900; letter-spacing: 4px; display: block; }
+  .sos-btn .small { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,.85); }
+  .pulse { position: absolute; width: 190px; height: 190px; border-radius: 50%; background: #DC143C; animation: pulse 1.6s ease-out infinite; z-index: 1; }
+  @keyframes pulse { 0% { transform: scale(1); opacity: .45; } 100% { transform: scale(1.55); opacity: 0; } }
+  /* Cards */
+  .card { display: flex; align-items: center; background: #1E293B; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: #DC143C; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; margin-right: 12px; flex-shrink: 0; }
+  .card-info { flex: 1; }
+  .card-name { font-size: 16px; font-weight: 700; }
+  .card-sub { color: #94A3B8; font-size: 13px; margin-top: 2px; }
+  .card-rel { color: #64748B; font-size: 12px; margin-top: 2px; }
+  .remove { width: 32px; height: 32px; border-radius: 50%; background: rgba(220,20,60,.15); color: #DC143C; border: none; font-weight: 700; cursor: pointer; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 12px; flex-shrink: 0; }
+  .empty { color: #64748B; font-size: 13px; text-align: center; margin: 16px 0; }
+  .note { color: #94A3B8; font-size: 13px; text-align: center; margin-top: 8px; }
+  /* Tabs */
+  .tabbar { display: flex; background: #1E293B; border-top: 1px solid #334155; }
+  .tab { flex: 1; padding: 14px; text-align: center; color: #64748B; font-size: 14px; font-weight: 600; cursor: pointer; background: none; border: none; }
+  .tab.active { color: #DC143C; }
+  /* Toast */
+  #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1E293B; border: 1px solid #334155; color: #F8FAFC; padding: 12px 20px; border-radius: 12px; font-size: 14px; max-width: 90%; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 99; }
+  #toast.show { opacity: 1; }
+  .section-title { font-size: 16px; font-weight: 700; margin: 16px 0 8px; }
+  .logout { color: #64748B; font-size: 13px; background: none; border: none; cursor: pointer; float: right; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- AUTH SCREEN -->
+  <div id="auth" class="screen">
+    <div class="brand">HIFATZAT</div>
+    <div class="brand-sub">Emergency Response System</div>
+    <input id="auth-name" class="hidden" placeholder="Full name" />
+    <input id="auth-phone" placeholder="Phone (e.g. +9725XXXXXXXX)" />
+    <input id="auth-pass" type="password" placeholder="Password (min 8 characters)" />
+    <button id="auth-submit" class="btn">Log In</button>
+    <button id="auth-switch" class="switch">Don't have an account? Sign up</button>
+  </div>
+
+  <!-- HOME SCREEN -->
+  <div id="home" class="screen hidden">
+    <button class="logout" onclick="logout()">Logout</button>
+    <h1 id="greeting">Hi</h1>
+    <div class="subtitle">Press the button below in an emergency</div>
+    <div class="sos-area">
+      <div class="pulse"></div>
+      <button id="sos" class="sos-btn">
+        <span class="big">SOS</span>
+        <span class="small">TAP FOR HELP</span>
+      </button>
+    </div>
+    <div class="section-title">Recent Alerts</div>
+    <div id="alerts"></div>
+  </div>
+
+  <!-- CONTACTS SCREEN -->
+  <div id="contacts" class="screen hidden">
+    <h1>Emergency Contacts</h1>
+    <div class="subtitle" id="contacts-count">0/2 contacts — alerted via SMS & WhatsApp on SOS</div>
+    <div id="contact-list"></div>
+    <div id="contact-form">
+      <input id="c-name" placeholder="Full name" />
+      <input id="c-phone" placeholder="Phone (e.g. +9725XXXXXXXX)" />
+      <input id="c-rel" placeholder="Relation (optional)" />
+      <button id="c-add" class="btn">Add Contact</button>
+    </div>
+    <div id="limit-note" class="note hidden">Contact limit reached. Remove a contact to add a new one.</div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div id="tabbar" class="tabbar hidden">
+    <button class="tab active" id="tab-home" onclick="showTab('home')">🏠 Home</button>
+    <button class="tab" id="tab-contacts" onclick="showTab('contacts')">👥 Contacts</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const API = '/api';
+let token = null;
+let user = null;
+let mode = 'login';
+
+const $ = (id) => document.getElementById(id);
+
+function toast(msg) {
+  $('toast').textContent = msg;
+  $('toast').classList.add('show');
+  setTimeout(() => $('toast').classList.remove('show'), 3500);
+}
+
+async function api(method, path, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: 'Bearer ' + token } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+  return data;
+}
+
+// ─── Auth ───
+$('auth-switch').onclick = () => {
+  mode = mode === 'login' ? 'signup' : 'login';
+  $('auth-name').classList.toggle('hidden', mode === 'login');
+  $('auth-submit').textContent = mode === 'login' ? 'Log In' : 'Create Account';
+  $('auth-switch').textContent = mode === 'login'
+    ? "Don't have an account? Sign up"
+    : 'Already have an account? Log in';
+};
+
+$('auth-submit').onclick = async () => {
+  const phone = $('auth-phone').value.trim();
+  const password = $('auth-pass').value;
+  const name = $('auth-name').value.trim();
+  if (!phone || !password || (mode === 'signup' && !name)) return toast('Please fill in all required fields.');
+  $('auth-submit').disabled = true;
+  try {
+    const body = mode === 'signup' ? { name, phone, password } : { phone, password };
+    const res = await api('POST', '/auth/' + mode, body);
+    token = res.data.token;
+    user = res.data.user;
+    $('greeting').textContent = 'Hi, ' + user.name;
+    $('auth').classList.add('hidden');
+    $('tabbar').classList.remove('hidden');
+    showTab('home');
+    loadAlerts();
+    loadContacts();
+  } catch (e) { toast('❌ ' + e.message); }
+  $('auth-submit').disabled = false;
+};
+
+function logout() {
+  token = null; user = null;
+  $('tabbar').classList.add('hidden');
+  $('home').classList.add('hidden');
+  $('contacts').classList.add('hidden');
+  $('auth').classList.remove('hidden');
+}
+
+// ─── Tabs ───
+function showTab(tab) {
+  $('home').classList.toggle('hidden', tab !== 'home');
+  $('contacts').classList.toggle('hidden', tab !== 'contacts');
+  $('tab-home').classList.toggle('active', tab === 'home');
+  $('tab-contacts').classList.toggle('active', tab === 'contacts');
+}
+
+// ─── SOS ───
+$('sos').onclick = async () => {
+  if (!confirm('🚨 This will immediately alert your emergency contacts via SMS and WhatsApp. Continue?')) return;
+  $('sos').disabled = true;
+  $('sos').querySelector('.small').textContent = 'SENDING';
+  try {
+    let coords = {};
+    try {
+      const pos = await new Promise((ok, no) => navigator.geolocation.getCurrentPosition(ok, no, { timeout: 4000 }));
+      coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    } catch {}
+    await api('POST', '/alerts/trigger', coords);
+    toast('✅ Alert sent! Your emergency contacts have been notified.');
+    loadAlerts();
+  } catch (e) { toast('❌ SOS failed: ' + e.message); }
+  $('sos').disabled = false;
+  $('sos').querySelector('.small').textContent = 'TAP FOR HELP';
+};
+
+const STATUS_COLORS = { PENDING: '#F59E0B', SENT: '#22C55E', PARTIAL: '#F97316', FAILED: '#EF4444' };
+
+async function loadAlerts() {
+  try {
+    const res = await api('GET', '/alerts/history');
+    const alerts = res.data.alerts;
+    $('alerts').innerHTML = alerts.length === 0
+      ? '<div class="empty">No alerts triggered yet.</div>'
+      : alerts.map(a => `
+        <div class="card">
+          <div class="dot" style="background:${STATUS_COLORS[a.status]}"></div>
+          <div class="card-info">
+            <div class="card-name" style="font-size:14px">${a.status}</div>
+            <div class="card-sub" style="font-size:12px">${new Date(a.createdAt).toLocaleString()}</div>
+          </div>
+        </div>`).join('');
+  } catch {}
+}
+
+// ─── Contacts ───
+async function loadContacts() {
+  try {
+    const res = await api('GET', '/contacts');
+    const list = res.data.contacts;
+    $('contacts-count').textContent = list.length + '/2 contacts — alerted via SMS & WhatsApp on SOS';
+    $('contact-list').innerHTML = list.length === 0
+      ? '<div class="empty">No emergency contacts yet. Add up to 2 below.</div>'
+      : list.map(c => `
+        <div class="card">
+          <div class="avatar">${c.name.charAt(0).toUpperCase()}</div>
+          <div class="card-info">
+            <div class="card-name">${c.name}</div>
+            <div class="card-sub">${c.phone}</div>
+            ${c.relation ? '<div class="card-rel">' + c.relation + '</div>' : ''}
+          </div>
+          <button class="remove" onclick="removeContact('${c.id}', '${c.name.replace(/'/g, '')}')">✕</button>
+        </div>`).join('');
+    const atLimit = list.length >= 2;
+    $('contact-form').classList.toggle('hidden', atLimit);
+    $('limit-note').classList.toggle('hidden', !atLimit);
+  } catch (e) { toast('❌ ' + e.message); }
+}
+
+$('c-add').onclick = async () => {
+  const name = $('c-name').value.trim();
+  const phone = $('c-phone').value.trim();
+  const relation = $('c-rel').value.trim();
+  if (!name || !phone) return toast('Name and phone number are required.');
+  $('c-add').disabled = true;
+  try {
+    await api('POST', '/contacts', { name, phone, relation: relation || undefined });
+    $('c-name').value = ''; $('c-phone').value = ''; $('c-rel').value = '';
+    loadContacts();
+    toast('✅ Contact added');
+  } catch (e) { toast('❌ ' + e.message); }
+  $('c-add').disabled = false;
+};
+
+async function removeContact(id, name) {
+  if (!confirm('Remove ' + name + ' from your emergency contacts?')) return;
+  try {
+    await api('DELETE', '/contacts/' + id);
+    loadContacts();
+  } catch (e) { toast('❌ ' + e.message); }
+}
+</script>
+</body>
+</html>
