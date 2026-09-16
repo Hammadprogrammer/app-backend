@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { isValidE164, normalizePhone } from '../lib/phone';
 
 const MAX_CONTACTS = 2;
 
@@ -9,8 +10,8 @@ export async function getContacts(req: AuthenticatedRequest, res: Response): Pro
   try {
     const contacts = await prisma.contact.findMany({
       where: { userId: req.userId },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true, name: true, phone: true, relation: true, createdAt: true },
+      orderBy: [{ priority: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, name: true, phone: true, relation: true, priority: true, createdAt: true },
     });
 
     res.json({ success: true, data: { contacts, max: MAX_CONTACTS } });
@@ -23,14 +24,22 @@ export async function getContacts(req: AuthenticatedRequest, res: Response): Pro
 /** POST /api/contacts — strict limit of 2 emergency contacts per user */
 export async function addContact(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { name, phone, relation } = req.body as {
+    const { name, phone, relation, priority } = req.body as {
       name?: string;
       phone?: string;
       relation?: string;
+      priority?: number;
     };
+    const prio = Number.isInteger(priority) && priority! >= 1 && priority! <= 3 ? priority! : 3;
 
     if (!name?.trim() || !phone?.trim()) {
       res.status(400).json({ success: false, message: 'name and phone are required' });
+      return;
+    }
+
+    const normalized = normalizePhone(phone);
+    if (!isValidE164(normalized)) {
+      res.status(400).json({ success: false, message: 'Enter a valid phone number, e.g. +92 300 1234567' });
       return;
     }
 
@@ -44,7 +53,7 @@ export async function addContact(req: AuthenticatedRequest, res: Response): Prom
     }
 
     const duplicate = await prisma.contact.findFirst({
-      where: { userId: req.userId, phone: phone.trim() },
+      where: { userId: req.userId, phone: normalized },
     });
     if (duplicate) {
       res.status(409).json({ success: false, message: 'This contact is already saved' });
@@ -54,11 +63,12 @@ export async function addContact(req: AuthenticatedRequest, res: Response): Prom
     const contact = await prisma.contact.create({
       data: {
         name: name.trim(),
-        phone: phone.trim(),
+        phone: normalized,
         relation: relation?.trim() || null,
+        priority: prio,
         userId: req.userId!,
       },
-      select: { id: true, name: true, phone: true, relation: true, createdAt: true },
+      select: { id: true, name: true, phone: true, relation: true, priority: true, createdAt: true },
     });
 
     res.status(201).json({ success: true, data: { contact } });
