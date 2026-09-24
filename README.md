@@ -1,10 +1,10 @@
 # HIFATZAT Emergency System
 
-Express + TypeScript backend (root) and React Native mobile app (`MyApp/`).
+Express + TypeScript backend (`backend/`) and React Native mobile app (`MyApp/`).
 
 ## Backend Setup
 
-1. `npm install`
+1. `cd backend && npm install`
 2. Copy `.env.example` → `.env` and fill in:
    - `DATABASE_URL` — NeonDB PostgreSQL connection string
    - `JWT_SECRET` — long random string
@@ -12,6 +12,14 @@ Express + TypeScript backend (root) and React Native mobile app (`MyApp/`).
    - Optional: `WHATSAPP_*` (Meta Cloud API) and `SMS_*` (gateway) — both fall back to console mocks in dev
 3. `npm run prisma:generate` then `npm run prisma:push` (or `prisma:migrate`)
 4. `npm run dev` → API on `http://localhost:4000`
+
+## Vercel Deployment
+
+1. Push this repo to GitHub and import it in Vercel.
+2. In project settings set **Root Directory = `backend`**.
+3. Add env vars in Vercel dashboard (same as `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SMS_*`, `WHATSAPP_*`.
+4. Deploy — Vercel runs `prisma generate` + `tsc` (see `backend/vercel.json`) and serves the API via `backend/api/index.ts`.
+5. Verify: `GET https://<your-app>.vercel.app/health` shows the active providers.
 
 ## API
 

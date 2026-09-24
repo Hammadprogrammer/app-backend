@@ -56,8 +56,11 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 HIFATZAT Emergency API running on http://localhost:${PORT}`);
-});
+// Only bind a port when running locally (Vercel runs this as a serverless function)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 HIFATZAT Emergency API running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;

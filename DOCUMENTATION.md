@@ -33,23 +33,27 @@ HIFATZAT is a personal-safety / emergency-alert system with three parts:
 
 ```
 app backend/
-├── prisma/schema.prisma        # DB models
-├── public/index.html           # Web test dashboard
-├── scripts/test-features.ps1   # End-to-end API test script
-├── src/
-│   ├── server.ts               # Express app, route mounting, /health
-│   ├── lib/
-│   │   ├── phone.ts            # E.164 phone normalization (+92 default)
-│   │   └── dates.ts            # Date helpers (day boundaries, streaks)
-│   ├── middleware/             # JWT auth, SOS rate limiter
-│   ├── services/
-│   │   ├── sms.service.ts      # SMS provider selection + send
-│   │   ├── whatsapp.service.ts # WhatsApp provider selection + send
-│   │   ├── otp.service.ts      # OTP issue/verify + delivery
-│   │   └── twilio.client.ts    # Minimal Twilio REST client
-│   ├── controllers/            # auth, contact, alert, checkin, trip, settings, streak
-│   └── routes/                 # Express routers per resource
-└── MyApp/                      # React Native app (separate repo)
+├── backend/                    # All backend code + web test UI
+│   ├── api/index.ts            # Vercel serverless entry point
+│   ├── vercel.json             # Vercel build config (prisma generate + tsc)
+│   ├── prisma/schema.prisma    # DB models
+│   ├── public/index.html       # Web test dashboard (served at /)
+│   ├── scripts/test-features.ps1 # End-to-end API test script
+│   ├── src/
+│   │   ├── server.ts           # Express app, route mounting, /health
+│   │   ├── lib/
+│   │   │   ├── phone.ts        # E.164 phone normalization (+92 default)
+│   │   │   └── dates.ts        # Date helpers (day boundaries, streaks)
+│   │   ├── middleware/         # JWT auth, SOS rate limiter
+│   │   ├── services/
+│   │   │   ├── sms.service.ts      # SMS provider selection + send
+│   │   │   ├── whatsapp.service.ts # WhatsApp provider selection + send
+│   │   │   ├── otp.service.ts      # OTP issue/verify + delivery
+│   │   │   └── twilio.client.ts    # Minimal Twilio REST client
+│   │   ├── controllers/        # auth, contact, alert, checkin, trip, settings, streak
+│   │   └── routes/             # Express routers per resource
+│   └── package.json / tsconfig.json / .env.example
+└── MyApp/                      # React Native mobile app
 ```
 
 ---
@@ -57,6 +61,7 @@ app backend/
 ## 4. Setup
 
 ```bash
+cd backend
 npm install
 npx prisma generate
 npx prisma db push        # or migrate deploy
@@ -259,14 +264,14 @@ Run: `cd MyApp && npm start` (Metro :8081), then `npm run android` with an emula
 ## 12. Testing
 
 ```powershell
-# Backend typecheck
-npx tsc --noEmit
+# Backend typecheck (run from backend/)
+cd backend; npx tsc --noEmit
 
 # End-to-end API test (server must be running)
-./scripts/test-features.ps1
+./backend/scripts/test-features.ps1
 
 # Health / provider check
 Invoke-RestMethod http://localhost:4000/health
 ```
 
-Git: backend repo → `github.com/Hammadprogrammer/app-backend` (branch `main`). `MyApp/` and `.env` are gitignored.
+Git: repo → `github.com/Hammadprogrammer/app-backend` (branch `main`). Backend code lives in `backend/`, mobile app in `MyApp/`. `.env` is gitignored.
