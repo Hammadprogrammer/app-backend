@@ -1,6 +1,3 @@
 node_modules/
 dist/
 .env
-
-# Mobile app is a separate repository
-MyApp/
