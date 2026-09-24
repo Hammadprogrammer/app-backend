@@ -1,0 +1,9 @@
+{
+  "name": "hifatzat-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HIFATZAT Emergency System — repo root (backend code lives in backend/, mobile app in MyApp/)",
+  "scripts": {
+    "build": "cd backend && npm install && npm run prisma:generate && npm run build"
+  }
+}
